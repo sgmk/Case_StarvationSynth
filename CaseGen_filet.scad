@@ -5,31 +5,41 @@
 /// plidheightublic domain
 
 $fn=50;
-wallThickness = 2.6;
-stepThickness = 2.4;
-stepDepth = 2;
-height = 15;
+wallThickness = 3.6;
+stepDepth = -1;
+height = 25;
 lidheight =5;
-lidcorr = 5;
 PCB = 1.6;
 length = 85;
 width = 55;
-filetRadius = 1.01;
+filetRadius = 2.01;
 cornerRadius = 5.1;
-sideAngles = 1.05;
+sideAngles = 1.15;
+
+//screws
 screwPortRadius = 8;
 screwRadius = 2;
 screwHeadRadius = 4;
-headHeight = 6;
-headDrill = -3;
+
+// tailor the details with this
+headHeight = 8;
+headDrill = -7;
+stepThickness = 1.9;
+lidcorr = 5;
 
 base();
+
+top_screwholes();
+
+// top case with screwholes
+module top_screwholes(){
 difference(){
 top();
     
 translate([0,2*width+0,headDrill+2*filetRadius+2*wallThickness]) 
   rotate([180,0,0])
-   #screwhead();
+   screwhead();
+}
 }
 
 // base case with screwholes
@@ -46,7 +56,9 @@ intersection(){
     sphere(filetRadius);
     }
 }
-  translate([0,0,-1+2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
+
+//moves the screwport lower
+  translate([0,0,-2+2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
   
   screwhole();
 }
@@ -180,7 +192,7 @@ module rimTop(){
 translate([0,0,lidheight-5])
   difference(){ 
     scale([sideAngles*0.97,sideAngles*0.95,1]) minkowski(){
-    translate([0,0,height-0*stepDepth+1.1]) roundedRect([length+2*stepThickness-0*filetRadius, width+2*stepThickness-0*filetRadius, 3,1], cornerRadius+stepThickness+filetRadius);
+    translate([0,0,height-1*stepDepth+1.1]) roundedRect([length+2*stepThickness-0*filetRadius, width+2*stepThickness-0*filetRadius, 3,1], cornerRadius+stepThickness+filetRadius);
     sphere(filetRadius*0.001);
     }
     minkowski(){ // This defines the size of the inside, as width / lenght above
