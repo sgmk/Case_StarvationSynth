@@ -1,32 +1,86 @@
 
 /// Case for everything
 /// designed by dusjagr 2022
-/// public domain
+/// inspired by this: https://www.youtube.com/watch?v=lPgLZgnbREk
+/// plidheightublic domain
+
 $fn=50;
-wallThickness = 2.2;
-stepThickness = 1.2;
+wallThickness = 2.6;
+stepThickness = 2.4;
 stepDepth = 2;
-height = 20;
-lidheight = 5;
+height = 15;
+lidheight =5;
 lidcorr = 5;
 PCB = 1.6;
-length = 80;
-width = 45;
-filetRadius = 2.01;
-cornerRadius =10;
+length = 85;
+width = 55;
+filetRadius = 1.01;
+cornerRadius = 5.1;
 sideAngles = 1.05;
+screwPortRadius = 8;
+screwRadius = 2;
+screwHeadRadius = 4;
+headHeight = 6;
+headDrill = -3;
 
+base();
+difference(){
+top();
+    
+translate([0,2*width+0,headDrill+2*filetRadius+2*wallThickness]) 
+  rotate([180,0,0])
+   #screwhead();
+}
+
+// base case with screwholes
+module base(){
 
 baseCase_round2();
 
-//translate([0,2*width+0,height+2*filetRadius+2*wallThickness]) rotate([180,0,0])topCase_round3();
+//screwports
+difference(){
+intersection(){ 
+  screwports();
+   minkowski(){
+    translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, height+2*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
+    sphere(filetRadius);
+    }
+}
+  translate([0,0,-1+2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
+  
+  screwhole();
+}
+}
 
-    
-module baseCase_round(){
-  minkowski(){
-    baseCase();
-    sphere(3);
-  }
+
+// Top lid with screwhole
+module top(){
+translate([0,2*width+0,height+2*filetRadius+2*wallThickness]) 
+rotate([180,0,0])
+   difference(){
+      topCase_round3();
+      screwhole();
+      
+
+}
+
+//screwports
+translate([0,2*width+0,height+2*filetRadius+2*wallThickness]) 
+rotate([180,0,0])
+difference(){
+intersection(){
+intersection(){ 
+  screwports();
+   minkowski(){
+    translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, height+2*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
+    sphere(filetRadius);
+    }
+}
+  translate([0,0,1+2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
+}
+      screwhole();
+}
+
 }
 
 
@@ -41,16 +95,57 @@ difference(){
     translate([0,0,+1*wallThickness-0.1*filetRadius]) roundedRect([length-2*filetRadius, width-2*filetRadius, height+1*wallThickness+0.3*filetRadius,sideAngles], cornerRadius);
     sphere(filetRadius/sideAngles);
     }
-    /*
-  minkowski(){
-    translate([0,0,height-stepDepth]) roundedRect([length+2*stepThickness-0*filetRadius, width+2*stepThickness-0*filetRadius, height,sideAngles], cornerRadius+stepThickness+filetRadius);
-    //sphere(filetRadius*0.00001);
-    }
-    */
+
   translate([0,0,2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
     
+  // cut to see inside  
   //translate([0,-width,-height-lidheight]) cube([2*length,2*width,100],center=false);
-  }
+    
+  rimTop();
+    }
+
+}
+
+screwHeight = 5*height+0.5*filetRadius;
+
+screwInset = 0.88;
+
+module screwports() {
+
+        // screw ports
+  translate([length/2,width/2,-height-wallThickness]) roundedRect([23,18,screwHeight],3);
+  translate([-length/2,-width/2,-height-wallThickness]) roundedRect([23,18,screwHeight],3);
+  translate([-length/2,width/2,-height-wallThickness]) roundedRect([23,18,screwHeight],3);
+  translate([length/2,-width/2,-height-wallThickness]) roundedRect([23,18,screwHeight],3);
+
+}
+
+
+module screwports2() {
+
+        // screw ports
+  translate([length/2,width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwPortRadius, center=true);
+  translate([-length/2,-width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwPortRadius, center=true);
+  translate([-length/2,width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwPortRadius, center=true);
+  translate([length/2,-width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwPortRadius, center=true);
+
+}
+
+module screwhole() {
+
+        // screw ports
+  translate([screwInset*length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwRadius, center=true);
+  translate([screwInset*-length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwRadius, center=true);
+  translate([screwInset*-length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwRadius, center=true);
+  translate([screwInset*length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwRadius, center=true);
+}
+module screwhead() {
+
+        // screw ports
+  translate([screwInset*length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
+  translate([screwInset*-length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
+  translate([screwInset*-length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
+  translate([screwInset*length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
 }
 
 module topCase_round3(){
@@ -64,13 +159,11 @@ difference(){
     translate([0,0,+1*wallThickness-0.1*filetRadius]) roundedRect([length-2*filetRadius, width-2*filetRadius, height+1*wallThickness+0.3*filetRadius,sideAngles], cornerRadius);
     sphere(filetRadius/sideAngles);
     }
-    /*
-  minkowski(){
-    translate([0,0,height-stepDepth]) roundedRect([length+2*stepThickness-0*filetRadius, width+2*stepThickness-0*filetRadius, height,sideAngles], cornerRadius+stepThickness+filetRadius);
-    //sphere(filetRadius*0.00001);
-    }
-    */
+
+
     //translate([length-20,0,height-height+lidheight+wallThickness]) cube([2*length,2*width,2*height],center=true);
+    
+    // cut off
     difference(){ 
         translate([0,0,0]) cube([2*length,2*width,15*height],center=true);
           translate([0,0,2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
@@ -78,37 +171,24 @@ difference(){
     }
   //translate([0,-width,-height+lidheight+filetRadius/2]) cube([2*length,2*width,100],center=false);
   }
+  
+  rimTop();
+  
 }
 
-module topCase_round2(){
-difference(){    
-  minkowski(){
-    roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, lidheight], cornerRadius+wallThickness);
-    sphere(filetRadius);
+module rimTop(){
+translate([0,0,lidheight-5])
+  difference(){ 
+    scale([sideAngles*0.97,sideAngles*0.95,1]) minkowski(){
+    translate([0,0,height-0*stepDepth+1.1]) roundedRect([length+2*stepThickness-0*filetRadius, width+2*stepThickness-0*filetRadius, 3,1], cornerRadius+stepThickness+filetRadius);
+    sphere(filetRadius*0.001);
     }
-    
-  minkowski(){ // This defines the size of the inside, as width / lenght above
-    translate([0,0,wallThickness]) roundedRect([length-2*filetRadius, width-2*filetRadius, 20+lidheight], cornerRadius);
-    sphere(filetRadius);
+    minkowski(){ // This defines the size of the inside, as width / lenght above
+    translate([0,0,+1*wallThickness-0.1*filetRadius]) roundedRect([length-2*filetRadius, width-2*filetRadius, height+1*wallThickness+0.3*filetRadius,sideAngles], cornerRadius);
+    sphere(filetRadius/sideAngles);
     }
-    
-  translate([0,0,lidheight+filetRadius/2]) cube([2*length,2*width,filetRadius],center=true);
-  }
-  
-  difference(){    
-  minkowski(){ //the step
-    translate([0,0,0]) roundedRect([length+2*stepThickness-0*filetRadius, width+2*stepThickness-0*filetRadius, stepDepth+lidheight], cornerRadius+stepThickness+filetRadius);
-    //sphere(filetRadius*0.00001);
-    }
-    
-  minkowski(){ // This defines the size of the inside, as width / lenght above
-    translate([0,0,wallThickness]) roundedRect([length-2*filetRadius, width-2*filetRadius, 50+lidheight], cornerRadius);
-    sphere(filetRadius);
-    }
-       
-  }
-  
-  
+    } 
+
 }
 
 
