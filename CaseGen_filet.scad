@@ -27,9 +27,31 @@ headDrill = -7;
 stepThickness = 1.9;
 lidcorr = 5;
 
-base();
-
+//base_drilled();
 top_screwholes();
+
+module base_drilled(){
+difference(){
+  base();
+  mirror([0,1,0]) rotate([0,0,180]) drillHoles();
+  translate([50,0,height-5]) rotate([0,90,0]) translate([0,0,-50]) roundedRect([8,15,100], 2);
+  translate([length/5,50,15]) rotate([90,0,0]) cylinder(h=100,d=10,center=true); 
+  translate([-length/5,50,15]) rotate([90,0,0]) cylinder(h=100,d=10,center=true); 
+  translate([0,0,-2.4]) mirror([0,1,0]) rotate([0,0,180]) engravings();
+}
+}
+
+
+module drillHoles(){
+
+linear_extrude(height = 100, center = true, convexity = 10) import(file = "CaseGen_interface.dxf", layer = "drillHoles");
+}
+
+module engravings(){
+
+linear_extrude(height = 2, center = true, convexity = 10) import(file = "CaseGen_interface.dxf", layer = "engraving");
+}
+
 
 // top case with screwholes
 module top_screwholes(){
@@ -118,38 +140,29 @@ difference(){
 
 }
 
-screwHeight = 5*height+0.5*filetRadius;
-
+//screwHeight = 5*height+1*filetRadius;
+screwHeight = 1.5*height+1*filetRadius+lidheight;
+portHeight =  1.5*height+1*filetRadius+lidheight;
+screwLenght = 2+portHeight/2+height/2;
 screwInset = 0.88;
 
 module screwports() {
 
         // screw ports
-  translate([length/2,width/2,-height-wallThickness]) roundedRect([23,18,screwHeight],3);
-  translate([-length/2,-width/2,-height-wallThickness]) roundedRect([23,18,screwHeight],3);
-  translate([-length/2,width/2,-height-wallThickness]) roundedRect([23,18,screwHeight],3);
-  translate([length/2,-width/2,-height-wallThickness]) roundedRect([23,18,screwHeight],3);
-
-}
-
-
-module screwports2() {
-
-        // screw ports
-  translate([length/2,width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwPortRadius, center=true);
-  translate([-length/2,-width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwPortRadius, center=true);
-  translate([-length/2,width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwPortRadius, center=true);
-  translate([length/2,-width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwPortRadius, center=true);
+  translate([length/2,width/2,-wallThickness]) roundedRect([5,4,portHeight,6],1);
+  translate([-length/2,-width/2,-wallThickness]) roundedRect([5,4,portHeight,6],1);
+  translate([-length/2,width/2,-wallThickness]) roundedRect([5,4,portHeight,6],1);
+  translate([length/2,-width/2,-wallThickness]) roundedRect([5,4,portHeight,6],1);
 
 }
 
 module screwhole() {
 
         // screw ports
-  translate([screwInset*length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwRadius, center=true);
-  translate([screwInset*-length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwRadius, center=true);
-  translate([screwInset*-length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwRadius, center=true);
-  translate([screwInset*length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=screwHeight, r= screwRadius, center=true);
+  translate([screwInset*length/2,screwInset*width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
+  #translate([screwInset*-length/2,screwInset*-width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
+  translate([screwInset*-length/2,screwInset*width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
+  translate([screwInset*length/2,screwInset*-width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
 }
 module screwhead() {
 
@@ -237,4 +250,33 @@ module roundedRect(size, radius)
 	}
   }
 
-        
+  
+// radius - radius of corners
+module roundedRect2(size, radius)
+{
+	x = size[0];
+	y = size[1];
+	z = size[2];
+    angle = size[3];
+    
+	translate([0,0,0])
+	//linear_extrude(height=z)
+    linear_extrude(height=z,scale=angle)
+	hull()
+	{
+		// place 4 circles in the corners, with the given radius
+		translate([(-x/2)+(radius), (-y/2)+(radius), 0])
+		circle(r=radius, $fn=100);
+	
+		translate([(x/2)-(radius), (-y/2)+(radius), 0])
+		circle(r=radius, $fn=100);
+	
+		translate([(-x/2)+(radius), (y/2)-(radius), 0])
+		circle(r=radius, $fn=100);
+	
+		translate([(x/2)-(radius), (y/2)-(radius), 0])
+		circle(r=radius, $fn=100);
+	}
+  }
+
+   
