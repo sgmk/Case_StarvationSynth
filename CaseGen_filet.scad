@@ -5,85 +5,79 @@
 /// plidheightublic domain
 
 $fn=50;
-wallThickness = 3.6;
-stepDepth = -1;
-height = 25;
-lidheight =5;
-PCB = 1.6;
 length = 85;
 width = 55;
+height = 25;
+lidheight =10;
+wallThickness = 3.6;
+
+
 filetRadius = 2.01;
 cornerRadius = 5.1;
 sideAngles = 1.15;
 
 //screws
-screwPortRadius = 8;
 screwRadius = 2;
 screwHeadRadius = 4;
+headHeight = 4; 
+headDrill = -10; // adjust for the screw head depth
 
 // tailor the details with this
-headHeight = 8;
-headDrill = -7;
-stepThickness = 1.9;
-lidcorr = 5;
+stepThickness = 1.9; // for the little rim to snap together
+stepDepth = 1.5; // height the little rim to snap together, kinda relates on lid thickness
+lidcorr = 8; //some weird dependency on the wall thickness of the lid
+engravingDepth = 2; // how deep to engrave
+screwInset = 0.95; //how far to move the screws towards the center
+portSize = 3; //size of the screwPort in ratio
+portAngle = 6;
 
-//base_drilled();
+// the final models
+
+base_drilled();
 top_screwholes();
 
+//top drilling from external .dxf file and side by shapes here
 module base_drilled(){
 difference(){
   base();
-  mirror([0,1,0]) rotate([0,0,180]) drillHoles();
+  mirror([0,1,0]) rotate([0,0,180]) //holes in the top
+    linear_extrude(height = 100, center = true, convexity = 10) import(file = "CaseGen_interface.dxf", layer = "drillHoles");
+  #translate([0,0,-2.4]) mirror([0,1,0]) rotate([0,0,180]) //engravings on top
+    linear_extrude(height = engravingDepth, center = true, convexity = 10) import(file = "CaseGen_interface.dxf", layer = "engraving");
   translate([50,0,height-5]) rotate([0,90,0]) translate([0,0,-50]) roundedRect([8,15,100], 2);
   translate([length/5,50,15]) rotate([90,0,0]) cylinder(h=100,d=10,center=true); 
   translate([-length/5,50,15]) rotate([90,0,0]) cylinder(h=100,d=10,center=true); 
-  translate([0,0,-2.4]) mirror([0,1,0]) rotate([0,0,180]) engravings();
+
 }
 }
 
 
-module drillHoles(){
-
-linear_extrude(height = 100, center = true, convexity = 10) import(file = "CaseGen_interface.dxf", layer = "drillHoles");
-}
-
-module engravings(){
-
-linear_extrude(height = 2, center = true, convexity = 10) import(file = "CaseGen_interface.dxf", layer = "engraving");
-}
-
-
-// top case with screwholes
+// top case with screwhead
 module top_screwholes(){
 difference(){
-top();
-    
-translate([0,2*width+0,headDrill+2*filetRadius+2*wallThickness]) 
-  rotate([180,0,0])
-   screwhead();
-}
+  top();
+  translate([0,2*width+0,headDrill+2*filetRadius+2*wallThickness]) rotate([180,0,0])
+    screwhead();
+  }
 }
 
 // base case with screwholes
 module base(){
-
 baseCase_round2();
-
-//screwports
-difference(){
-intersection(){ 
-  screwports();
-   minkowski(){
-    translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, height+2*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
-    sphere(filetRadius);
-    }
-}
-
-//moves the screwport lower
-  translate([0,0,-2+2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
+difference(){ 
+  intersection(){ //make sure all the screwport volume is inside the box
+    screwports();
+    minkowski(){
+      translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*   wallThickness-2*filetRadius, height+2*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
+      sphere(filetRadius);
+      }
+  }
   
-  screwhole();
-}
+  screwhole(); //drill the screwholes
+  
+  //cuts the screwport below the rim
+    translate([0,0,-2+2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
+  }
 }
 
 
@@ -91,29 +85,28 @@ intersection(){
 module top(){
 translate([0,2*width+0,height+2*filetRadius+2*wallThickness]) 
 rotate([180,0,0])
-   difference(){
-      topCase_round3();
-      screwhole();
-      
-
-}
+  difference(){
+    topCase_round3();
+    screwhole();     
+  }
 
 //screwports
 translate([0,2*width+0,height+2*filetRadius+2*wallThickness]) 
 rotate([180,0,0])
 difference(){
-intersection(){
-intersection(){ 
-  screwports();
-   minkowski(){
-    translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, height+2*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
-    sphere(filetRadius);
+  intersection(){
+    intersection(){ 
+      screwports();
+      minkowski(){
+          translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, height+2*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
+          
+          sphere(filetRadius);
+      }
     }
-}
   translate([0,0,1+2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
-}
+  }
       screwhole();
-}
+} //end difference
 
 }
 
@@ -136,7 +129,7 @@ difference(){
   //translate([0,-width,-height-lidheight]) cube([2*length,2*width,100],center=false);
     
   rimTop();
-    }
+  }
 
 }
 
@@ -144,15 +137,15 @@ difference(){
 screwHeight = 1.5*height+1*filetRadius+lidheight;
 portHeight =  1.5*height+1*filetRadius+lidheight;
 screwLenght = 2+portHeight/2+height/2;
-screwInset = 0.88;
+
 
 module screwports() {
 
         // screw ports
-  translate([length/2,width/2,-wallThickness]) roundedRect([5,4,portHeight,6],1);
-  translate([-length/2,-width/2,-wallThickness]) roundedRect([5,4,portHeight,6],1);
-  translate([-length/2,width/2,-wallThickness]) roundedRect([5,4,portHeight,6],1);
-  translate([length/2,-width/2,-wallThickness]) roundedRect([5,4,portHeight,6],1);
+  translate([length/2,width/2,-wallThickness]) roundedRect([portSize*1.25,portSize*1,portHeight,portAngle],1);
+  translate([-length/2,-width/2,-wallThickness]) roundedRect([portSize*1.25,portSize*1,portHeight,portAngle],1);
+  translate([-length/2,width/2,-wallThickness]) roundedRect([portSize*1.25,portSize*1,portHeight,portAngle],1);
+  translate([length/2,-width/2,-wallThickness]) roundedRect([portSize*1.25,portSize*1,portHeight,portAngle],1);
 
 }
 
@@ -170,7 +163,7 @@ module screwhead() {
   translate([screwInset*length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
   translate([screwInset*-length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
   translate([screwInset*-length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
-  translate([screwInset*length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
+  #translate([screwInset*length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
 }
 
 module topCase_round3(){
@@ -216,11 +209,6 @@ translate([0,0,lidheight-5])
 
 }
 
-
-module baseCase(){
-
-linear_extrude(height = height, center = false, convexity = 10) import(file = "BlindNoiseCase.dxf", layer = "Base");
-}
 
 // radius - radius of corners
 module roundedRect(size, radius)
