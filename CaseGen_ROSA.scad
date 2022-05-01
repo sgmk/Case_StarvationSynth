@@ -17,31 +17,34 @@ cornerRadius = 5.0001;
 sideAngles = 1.05;
 
 //screws
-screwRadius = 2;
-screwHeadRadius = 4;
-headHeight = 5; 
-headDrill = 0; // adjust for the screw head depth
+screwRadius = 1.5;
+screwHeadRadius = 3.8;
+headHeight = 2; 
+headDrill = 1; // adjust for the screw head depth
 
 // tailor the details with this
 stepThickness = 2.0; // for the little rim to snap together
 stepDepth = 3; // height the little rim to snap together, kinda relates on lid thickness
 lidcorr =8; //some weird dependency on the wall thickness of the lid
-engravingDepth = 1.8; // how deep to engrave
-screwInset = 0.84; //how far to move the screws towards the center
-portSize = 8; //size of the screwPort in ratio
-portAngle = 3.5;
+engravingDepth = 2.2; // how deep to engrave
+screwInset = 0.86; //how far to move the screws towards the center
+portSize = 6; //size of the screwPort in ratio
+portAngle = 4.2;
 
 // the final models
 
 //baseCase_round2(); //without screwports
-//base(); // pure box
-base_drilled(); // with engravings and holes
-//top_screwholes();
+//base_drilled(); // pure box
+base_engraved(); // with engravings and holes
+
+topCase_round3();
+//top();
+//top_drilled();
 
 //top drilling from external .dxf file and side by shapes here
-module base_drilled(){
+module base_engraved(){
 difference(){
-  base();
+  base_drilled();
   mirror([0,1,0]) rotate([0,0,180]) //holes in the top
     linear_extrude(height = 100, center = true, convexity = 10) import(file = "CaseGen_interface.dxf", layer = "drillHoles");
   translate([0,0,-2.4]) mirror([0,1,0]) rotate([0,0,180]) //engravings on top
@@ -54,17 +57,8 @@ difference(){
 }
 
 
-// top case with screwhead
-module top_screwholes(){
-difference(){
-  top();
-  translate([0,2*width+0,headDrill+2*filetRadius+2*wallThickness]) rotate([180,0,0])
-    screwhead();
-  }
-}
-
 // base case with screwholes
-module base(){
+module base_drilled(){
 baseCase_round2();
 difference(){ 
   intersection(){ //make sure all the screwport volume is inside the box
@@ -82,14 +76,23 @@ difference(){
   }
 }
 
+// this is just to move it to the side...
+
+module top(){
+translate([0,2*width+0,height+2*filetRadius+2*wallThickness]) 
+rotate([180,0,0]) topCase_round3();
+}
+
 
 // Top lid with screwhole
-module top(){
+module top_drilled(){
 translate([0,2*width+0,height+2*filetRadius+2*wallThickness]) 
 rotate([180,0,0])
   difference(){
     topCase_round3();
-    screwhole();     
+    screwhole();  
+    translate([0,0,-headDrill+height])
+      screwhead();   
   }
 
 //screwports
@@ -107,7 +110,10 @@ difference(){
     }
   translate([0,0,1+2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
   }
-      screwhole();
+      screwhole2();
+      translate([0,0,-headDrill+height])
+        screwhead(); 
+      
 } //end difference
 
 }
@@ -159,13 +165,23 @@ module screwhole() {
   translate([screwInset*-length/2,screwInset*width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
   translate([screwInset*length/2,screwInset*-width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
 }
+
+module screwhole2() {
+
+        // screw ports
+  translate([screwInset*length/2,screwInset*width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius*1.2, center=true);
+  translate([screwInset*-length/2,screwInset*-width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius*1.2, center=true);
+  #translate([screwInset*-length/2,screwInset*width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius*1.2, center=true);
+  translate([screwInset*length/2,screwInset*-width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius*1.2, center=true);
+}
+
 module screwhead() {
 
         // screw ports
-  translate([screwInset*length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
-  translate([screwInset*-length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
-  translate([screwInset*-length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
-  #translate([screwInset*length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r= screwHeadRadius, center=true);
+  translate([screwInset*length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r1= screwHeadRadius/1.5,r2=screwHeadRadius, center=true);
+  translate([screwInset*-length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r1= screwHeadRadius/1.5,r2=screwHeadRadius, center=true);
+  translate([screwInset*-length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r1= screwHeadRadius/1.5,r2=screwHeadRadius, center=true);
+  #translate([screwInset*length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r1= screwHeadRadius/1.5,r2=screwHeadRadius, center=true);
 }
 
 
