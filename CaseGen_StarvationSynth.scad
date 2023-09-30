@@ -5,31 +5,33 @@
 /// plidheightublic domain
 
 $fn=50;
-length = 85;
-width = 55;
-height = 25;
-lidheight =8; //very weird parameter
-wallThickness = 2;
+length = 110;
+width = 50;
+height = 20;
+lidheight =5; //very weird parameter
+wallThickness = 2.4;
 
 
-filetRadius = 2.0001;
-cornerRadius = 5.0001;
-sideAngles = 1.05;
+filetRadius = 2.5001;
+cornerRadius = 0.0001;
+sideAngles = 1.0;
 
 //screws
 screwRadius = 1.5;
-screwHeadRadius = 3.8;
-headHeight = 2; 
-headDrill = 1; // adjust for the screw head depth
+screwHeadRadius = 4;
+headHeight = 3; 
+headDrill = -1.8; // adjust for the screw head depth
 
 // tailor the details with this
-stepThickness = 2.0; // for the little rim to snap together
-stepDepth = 3; // height the little rim to snap together, kinda relates on lid thickness
-lidcorr =8; //some weird dependency on the wall thickness of the lid
-engravingDepth = 2.2; // how deep to engrave
-screwInset = 0.86; //how far to move the screws towards the center
-portSize = 6; //size of the screwPort in ratio
-portAngle = 4.2;
+stepThickness = 3.0; // for the little rim to snap together
+stepDiff = 0.0; // To make sure the snap together. 0.2 - 0.5
+stepDepth = -0.6; // height the little rim to snap together, kinda relates on lid thickness
+lidcorr = 5; //some weird dependency on the wall thickness of the lid
+innerVolZ = -0.5;
+engravingDepth = 5; // how deep to engrave
+screwInset = 0.93; //how far to move the screws towards the center
+portSize = 5; //size of the screwPort in ratio
+portAngle = 3;
 
 // the final models
 
@@ -37,23 +39,42 @@ portAngle = 4.2;
 //base_drilled(); // pure box
 base_engraved(); // with engravings and holes
 
-topCase_round3();
+//translate([0,0,55]) PCB();
+
+//translate([0,0,0]) topCase_round3();
 //top();
-//top_drilled();
+top_drilled();
+
+module PCB(){
+  difference(){  
+      union(){
+    translate([0,0,0]) mirror([0,0,0]) rotate([0,0,90]) //engravings on top
+    linear_extrude(height = 0.8, center = true, convexity = 10) import(file = "starvation_pcb.dxf", layer = "pcbBorder");
+    
+    translate([0,0,-2.4]) mirror([0,0,0]) rotate([0,0,90])
+    linear_extrude(height = 5.2, center = true, convexity = 10) import(file = "starvation_pcb.dxf", layer = "3d_parts");
+      }
+      
+    translate([0,0,-2.4]) mirror([0,0,0]) rotate([0,0,90]) //engravings on top
+    linear_extrude(height = 1, center = true, convexity = 10) import(file = "starvation_pcb.dxf", layer = "holes");
+      
+  }
+}
+
 
 //top drilling from external .dxf file and side by shapes here
 module base_engraved(){
-difference(){
+difference(){  
   base_drilled();
   mirror([0,1,0]) rotate([0,0,180]) //holes in the top
-    linear_extrude(height = 100, center = true, convexity = 10) import(file = "CaseGen_interface.dxf", layer = "drillHoles");
-  translate([0,0,-2.4]) mirror([0,1,0]) rotate([0,0,180]) //engravings on top
-    linear_extrude(height = engravingDepth, center = true, convexity = 10) import(file = "CaseGen_interface.dxf", layer = "engraving");
-  translate([50,0,height-5]) rotate([0,90,0]) translate([0,0,-50]) roundedRect([8,15,100], 2);
-  translate([length/5,50,15]) rotate([90,0,0]) cylinder(h=100,d=10,center=true); 
-  translate([-length/5,50,15]) rotate([90,0,0]) cylinder(h=100,d=10,center=true); 
+    //linear_extrude(height = 100, center = true, convexity = 10) import(file = "CaseGen_interface_mini.dxf", layer = "drillHoles");
+  translate([0,0,-2.4]) mirror([0,0,0]) rotate([0,0,-90]) //engravings on top
+    linear_extrude(height = engravingDepth, center = true, convexity = 10) import(file = "starvation_pcb.dxf", layer = "CaseOpenings");
+  //translate([50,6,height-18]) rotate([0,90,0]) translate([0,0,-50]) roundedRect([10,10,100], 2);
+  //translate([length/5,50,12]) rotate([90,0,0]) cylinder(h=100,d=12.5,center=true); 
+  //translate([-length/5,50,12]) rotate([90,0,0]) cylinder(h=100,d=12.5,center=true); 
 
-}
+  }
 }
 
 
@@ -80,7 +101,8 @@ difference(){
 
 module top(){
 translate([0,2*width+0,height+2*filetRadius+2*wallThickness]) 
-rotate([180,0,0]) topCase_round3();
+rotate([180,0,0]) 
+    topCase_round3();
 }
 
 
@@ -103,7 +125,7 @@ difference(){
     intersection(){ 
       screwports();
       minkowski(){
-          translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, height+0*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
+          translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, height+2*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
           
           sphere(filetRadius);
       }
@@ -127,7 +149,7 @@ difference(){
     }
     
   minkowski(){ // This defines the size of the inside, as width / lenght above
-    translate([0,0,+1*wallThickness-0.1*filetRadius]) roundedRect([length-2*filetRadius, width-2*filetRadius, height+1*wallThickness+0.3*filetRadius,sideAngles], cornerRadius);
+    translate([0,0,innerVolZ+1*wallThickness-0.1*filetRadius]) roundedRect([length-2*filetRadius, width-2*filetRadius, height+1*wallThickness+0.3*filetRadius,sideAngles], cornerRadius);
     sphere(filetRadius/sideAngles);
     }
 
@@ -136,7 +158,7 @@ difference(){
   // cut to see inside  
   //translate([0,-width,-height-lidheight]) cube([2*length,2*width,100],center=false);
     
-  rimTop();
+  rimBody();
   }
 
 }
@@ -161,7 +183,7 @@ module screwhole() {
 
         // screw ports
   translate([screwInset*length/2,screwInset*width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
-  #translate([screwInset*-length/2,screwInset*-width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
+  translate([screwInset*-length/2,screwInset*-width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
   translate([screwInset*-length/2,screwInset*width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
   translate([screwInset*length/2,screwInset*-width/2,screwLenght]) cylinder(h=screwHeight, r= screwRadius, center=true);
 }
@@ -178,16 +200,16 @@ module screwhole2() {
 module screwhead() {
 
         // screw ports
-  translate([screwInset*length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r1= screwHeadRadius/1.5,r2=screwHeadRadius, center=true);
-  translate([screwInset*-length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r1= screwHeadRadius/1.5,r2=screwHeadRadius, center=true);
-  translate([screwInset*-length/2,screwInset*width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r1= screwHeadRadius/1.5,r2=screwHeadRadius, center=true);
-  #translate([screwInset*length/2,screwInset*-width/2,0.5*height-wallThickness]) cylinder(h=headHeight, r1= screwHeadRadius/1.5,r2=screwHeadRadius, center=true);
+  translate([screwInset*length/2,screwInset*width/2,0.5*height-wallThickness+2]) cylinder(h=headHeight, r1= screwHeadRadius/1.8,r2=screwHeadRadius, center=true);
+  translate([screwInset*-length/2,screwInset*-width/2,0.5*height-wallThickness+2]) cylinder(h=headHeight, r1= screwHeadRadius/1.8,r2=screwHeadRadius, center=true);
+  translate([screwInset*-length/2,screwInset*width/2,0.5*height-wallThickness+2]) cylinder(h=headHeight, r1= screwHeadRadius/1.8,r2=screwHeadRadius, center=true);
+  translate([screwInset*length/2,screwInset*-width/2,0.5*height-wallThickness+2]) cylinder(h=headHeight, r1= screwHeadRadius/1.8,r2=screwHeadRadius, center=true);
 }
 
 
 
 //needs to be fixed for thing top wall
-module topCase_round3(){
+module topCase_round3_bak(){
 difference(){    
   minkowski(){
     translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, height+0*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
@@ -195,7 +217,7 @@ difference(){
     }
     
   minkowski(){ // This defines the size of the inside, as width / lenght above
-    translate([0,0,+1*wallThickness-0.1*filetRadius]) roundedRect([length-2*filetRadius, width-2*filetRadius, height+2*wallThickness+0.5*filetRadius,sideAngles], cornerRadius);
+    translate([0,0,innerVolZ+1*wallThickness-0.1*filetRadius]) roundedRect([length-2*filetRadius, width-2*filetRadius, height+2*wallThickness+0.5*filetRadius,sideAngles], cornerRadius);
     sphere(filetRadius/sideAngles);
     }
 
@@ -215,7 +237,57 @@ difference(){
   
 }
 
-module rimTop(){
+module baseCase_round2_bak(){
+difference(){    
+  minkowski(){
+    translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, height+2*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
+    sphere(filetRadius);
+    }
+    
+  minkowski(){ // This defines the size of the inside, as width / lenght above
+    translate([0,0,innerVolZ+1*wallThickness-0.1*filetRadius]) roundedRect([length-2*filetRadius, width-2*filetRadius, height+1*wallThickness+0.3*filetRadius,sideAngles], cornerRadius);
+    sphere(filetRadius/sideAngles);
+    }
+
+  translate([0,0,2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
+    
+  // cut to see inside  
+  translate([0,-width,-height-lidheight]) cube([2*length,2*width,100],center=false);
+    
+  rimBody();
+  }
+
+}
+
+module topCase_round3(){
+difference(){    
+  minkowski(){
+    translate([0,0,0]) roundedRect([length+2*wallThickness-2*filetRadius, width+2*wallThickness-2*filetRadius, height+2*wallThickness+lidheight,sideAngles], cornerRadius+wallThickness);
+    sphere(filetRadius);
+    }
+    
+  minkowski(){ // This defines the size of the inside, as width / lenght above
+    translate([0,0,innerVolZ+1*wallThickness-0.1*filetRadius]) roundedRect([length-2*filetRadius, width-2*filetRadius, height+2*wallThickness+0.5*filetRadius,sideAngles], cornerRadius);
+    sphere(filetRadius/sideAngles);
+    }
+
+
+    //translate([length-20,0,height-height+lidheight+wallThickness]) cube([2*length,2*width,2*height],center=true);
+    
+    // cut off
+    difference(){ 
+        translate([0,0,0]) cube([2*length,2*width,15*height],center=true);
+          translate([0,0,2*height+wallThickness+lidheight-lidcorr]) cube([2*length,2*width,2*height],center=true);
+
+    }
+  //translate([0,-width,-height+lidheight+filetRadius/2]) cube([2*length,2*width,100],center=false);
+  }
+  
+  rimTop();
+  
+}
+
+module rimBody(){
 translate([0,0,lidheight-5])
   difference(){ 
     scale([sideAngles*0.97,sideAngles*0.95,1]) minkowski(){
@@ -229,6 +301,23 @@ translate([0,0,lidheight-5])
     } 
 
 }
+
+module rimTop(){
+translate([0,0,lidheight-5])
+  difference(){ 
+    scale([sideAngles*0.97,sideAngles*0.95,1]) minkowski(){
+    translate([0,0,height-1*stepDepth+1.1]) roundedRect([length+2*stepThickness-stepDiff*filetRadius, width+2*stepThickness-stepDiff*filetRadius, 3,1], cornerRadius+stepThickness-stepDiff+filetRadius);
+    sphere(filetRadius*0.001);
+    }
+    minkowski(){ // This defines the size of the inside, as width / lenght above
+    translate([0,0,+1*wallThickness-0.1*filetRadius]) roundedRect([length-2*filetRadius, width-2*filetRadius, height+1*wallThickness+0.3*filetRadius,sideAngles], cornerRadius);
+    sphere(filetRadius/sideAngles);
+    }
+    } 
+
+}
+
+
 
 
 // radius - radius of corners
