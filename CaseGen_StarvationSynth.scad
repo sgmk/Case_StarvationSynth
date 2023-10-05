@@ -43,7 +43,7 @@ base_engraved(); // with engravings and holes
 
 //translate([0,0,0]) topCase_round3();
 //top();
-top_drilled();
+//top_drilled();
 
 module PCB(){
   difference(){  
@@ -75,6 +75,9 @@ difference(){
   //translate([-length/5,50,12]) rotate([90,0,0]) cylinder(h=100,d=12.5,center=true); 
 
   }
+  //screw ports pcb
+  translate([0,0,2]) mirror([0,1,0]) rotate([0,0,90])
+    linear_extrude(height = 8, center = true, convexity = 10) import(file = "starvation_pcb.dxf", layer = "holes");
 }
 
 
