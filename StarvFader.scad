@@ -8,11 +8,11 @@ Knob_Height=12;//[10:20]
 //Longueur de l'axe
 Axis_Lenght=9.6;//[5:15]
 Axis_Width = 0.8 ;
-FaderAxis_Length = 4.2;
+FaderAxis_Length = 4.6;
 //Arrondis
 Rounded=1.5;//[1:3]
 //Ajustement
-Ajustment=-0.2;//[0,0.1,0.2,0.3]
+Ajustment=-0.1;//[0,0.1,0.2,0.3]
 /* [Hidden] */
 $fn=50;
 
@@ -34,12 +34,12 @@ rotate([180,0,0]) difference() {
 */
   difference() {
       translate([0,0,4]) cylinder(r=FaderAxis_Length/2+Ajustment,h=Axis_Lenght-4);
-      translate([-5,-6-Axis_Width-Ajustment,2]) cube([10,6,Axis_Lenght-2]);
-      translate([-5, Axis_Width+Ajustment,2]) cube([10,6,Axis_Lenght-2]);
+      translate([-5,-6-Axis_Width-0.1-Ajustment,2]) cube([10,6,Axis_Lenght-2]);
+      translate([-5, Axis_Width+0.1+Ajustment,2]) cube([10,6,Axis_Lenght-2]);
   }
   difference() {
-      translate([0,0,-0.01]) cylinder(r=FaderAxis_Length/2+Ajustment+0.5,h=4.1);
-      #translate([-5,-6-Axis_Width-0.2-Ajustment,0]) cube([10,6,Axis_Lenght-2]);
-      #translate([-5, Axis_Width+0.2+Ajustment,0]) cube([10,5,Axis_Lenght-2]);
+      translate([0,0,-0.01]) cylinder(r=FaderAxis_Length/2+Ajustment+0.6,h=4.1);
+      translate([-5,-6-Axis_Width-0.2-Ajustment,0]) cube([10,6,Axis_Lenght-2]);
+      translate([-5, Axis_Width+0.2+Ajustment,0]) cube([10,5,Axis_Lenght-2]);
   }
 }
